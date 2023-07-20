@@ -1,43 +1,45 @@
 const dataChange = document.querySelector("#dataChange");
-const dataFixed = document.querySelector("#dataFixed");
 
 const canvas = document.querySelector("#canvas");
 const ctx = canvas.getContext("2d");
 
-const windowWidth = window.innerWidth;
-const windowHeight = window.innerHeight;
+/*const windowWidth = window.innerWidth - 20;
+const windowHeight = window.innerHeight - 10;
 
-canvas.style.backgroundColor = "#FF0043";
+canvas.style.backgroundColor = "#FF0043";*/
 
-canvas.width = windowWidth;
-canvas.height = windowHeight;
+const height = canvas.clientHeight;
+const width = canvas.clientWidth;
 
-const height = 100;
-const width = 100;
-const centerX = (windowWidth / 2 - width / 2);
-const centerY = (windowHeight / 2 - height / 2);
-const lados = 100;
-const raio = 100;
-const velocidade = 400;
+canvas.width = width;
+canvas.height = height;
 
-dataFixed.innerText = `Raio: ${raio}`;
+const centerX = width / 2;
+const centerY = height / 2;
+let raio = 100;
+let lados = 100;
+let velocity = 2000;
+let verify = false;
+let stop = false;
+const timeout = [];
 
-const gerarCircle = (lados = lados) => {
+const drawCircle = (verify) => {
+    if(verify) {
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, raio, 0, 2 * Math.PI);
+        ctx.stroke();
+    } else {
+        ctx.clearRect(0, 0, width, height);
+    }
+}
+
+const drawSequence = () => {
     let x = 0;
-    for(let i = 1; i <= lados; i++) {
-        setTimeout(() => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-           /* ctx.beginPath();
-            ctx.arc(centerX, centerY, raio, 0, 2 * Math.PI);
-            ctx.stroke();*/
-
-            /*ctx.beginPath();
-            ctx.arc(centerX, centerY - 100, 100, 0, 2 * Math.PI);
-            ctx.stroke();*/
-
-            /*ctx.beginPath();
-            ctx.arc(centerX, centerY + 100, 100, 0, 2 * Math.PI);
-            ctx.stroke();*/
+    stop = false;
+    for(let i = 2; i <= lados + 1; i++) {
+        timeout.push(setTimeout(() => {
+            ctx.clearRect(0, 0, width, height);
+            drawCircle(verify);
 
             ctx.beginPath();
             const grausRad = i % 2 === 0 ? -((180 * (i - 2)) / i / 2) * (Math.PI / 180) : ((180 * (i - 2)) / i / 2) * (Math.PI / 180);
@@ -96,14 +98,27 @@ const gerarCircle = (lados = lados) => {
                 ctx.lineTo(endX, endY);
                 ctx.stroke();
             }
-            dataChange.innerText = `Lados: ${i}\nPerímetro: ${tamanhoLado * i}\nTesteDePi: ${(tamanhoLado * i) / raio / 2}`;
+
+            dataChange.innerText =
+                `   Raio: ${raio}
+                    Lados: ${i}
+                    Tamanho do lado (i): ${tamanhoLado}
+                    Perímetro: ${tamanhoLado * i}
+                    Teste de Pi: ${(tamanhoLado * i) / raio / 2}
+                `;
             x++;
-        }, i * velocidade);
+        }, (i - 2) * velocity));
+
+        if(stop === true) {
+            break;
+        }
     }
 }
 
-const draw = (i) =>{
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+const drawOne = (i) => {
+    ctx.clearRect(0, 0, width, height);
+    drawCircle(verify);
+
     ctx.beginPath();
     const grausRad = i % 2 === 0 ? -((180 * (i - 2)) / i / 2) * (Math.PI / 180) : ((180 * (i - 2)) / i / 2) * (Math.PI / 180);
     let moveToX = centerX + raio * Math.cos(grausRad);
@@ -158,21 +173,42 @@ const draw = (i) =>{
         ctx.lineTo(endX, endY);
         ctx.stroke();
     }
-    dataChange.innerText = `Lados: ${i}\nPerímetro: ${tamanhoLado * i}\nTesteDePi: ${(tamanhoLado * i) / raio / 2}`;
+
+    dataChange.innerText =
+        `   Raio: ${raio}
+            Lados: ${i}
+            Tamanho do lado (i): ${tamanhoLado}
+            Perímetro: ${tamanhoLado * i}
+            Teste de Pi: ${(tamanhoLado * i) / raio / 2}
+        `;
 }
 
 document.querySelector("#form").onsubmit = (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
-    const inputLados = parseInt(formData.get("lados"));
     const automatizar = formData.get("automatizar");
-    console.log(automatizar)
-    if(!automatizar) {
-        draw(inputLados);
+    const circleView = formData.get("circleView");
+    lados = parseInt(formData.get("lados"));
+    velocity = formData.get("velocity");
+    raio = formData.get("raio");
+
+    stop = true;
+
+    timeout.forEach(timeout => {
+        clearTimeout(timeout);
+    })
+
+    if(circleView){
+        verify = true;
     } else {
-        gerarCircle(inputLados);
+        verify = false;
+    }
+
+    drawCircle(verify);
+
+    if(!automatizar) {
+        drawOne(lados);
+    } else {
+        drawSequence();
     }
 }
-
-//gerarCircle();
-//draw(lados);

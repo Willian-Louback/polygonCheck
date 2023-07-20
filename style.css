@@ -2,3 +2,29 @@
     padding: 0;
     margin: 0;
 }
+
+body {
+    background-color: #FF0043;
+}
+
+header, footer {
+    display: flex;
+    margin: 20px;
+}
+
+#dataChange {
+    font-size: large;
+}
+
+#form {
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    justify-content: center;
+    gap: 10px;
+}
+
+#canvas {
+    width: 100%;
+    height: 351px;
+}
