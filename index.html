@@ -9,6 +9,14 @@
 <body>
     <p style="position: absolute; font-size: large;" id="dataChange"></p>
     <p style="position: absolute; top: 80px; font-size: large;" id="dataFixed"></p>
+    <form id="form" style="position: absolute; left: 50%; top: 80px; display: flex; flex-direction: column; width: 100px; align-items: center; justify-content: center;">
+        <div id="form" style="display: flex; flex-direction: row; gap: 10px;">
+            <input type="number" name="lados" min="2" max="2000" required>
+            <input type="checkbox" name="automatizar" id="automatizar" value="true">
+            <label for="automatizar">Automatizar</label>
+        </div>
+        <button type="submit" style="width: 50px;">list</button>
+    </form>
     <canvas id="canvas"></canvas>
     <script src="./circleChallenge.js"></script>
 </body>
