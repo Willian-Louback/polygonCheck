@@ -21,6 +21,7 @@ let lados = 100;
 let velocity = 2000;
 let verify = false;
 let stop = false;
+let viewAll = false;
 const timeout = [];
 
 const drawCircle = (verify) => {
@@ -28,17 +29,17 @@ const drawCircle = (verify) => {
         ctx.beginPath();
         ctx.arc(centerX, centerY, raio, 0, 2 * Math.PI);
         ctx.stroke();
-    } else {
-        ctx.clearRect(0, 0, width, height);
     }
 }
 
 const drawSequence = () => {
     let x = 0;
     stop = false;
-    for(let i = 2; i <= lados + 1; i++) {
+    for(let i = 2; i <= lados; i++) {
         timeout.push(setTimeout(() => {
-            ctx.clearRect(0, 0, width, height);
+            if(!viewAll) {
+                ctx.clearRect(0, 0, width, height);
+            }
             drawCircle(verify);
 
             ctx.beginPath();
@@ -187,10 +188,11 @@ document.querySelector("#form").onsubmit = (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
     const automatizar = formData.get("automatizar");
-    const circleView = formData.get("circleView");
+    verify = formData.get("circleView");
     lados = parseInt(formData.get("lados"));
     velocity = formData.get("velocity");
     raio = formData.get("raio");
+    viewAll = formData.get("viewAllDraw");
 
     stop = true;
 
@@ -198,13 +200,7 @@ document.querySelector("#form").onsubmit = (event) => {
         clearTimeout(timeout);
     })
 
-    if(circleView){
-        verify = true;
-    } else {
-        verify = false;
-    }
-
-    drawCircle(verify);
+    ctx.clearRect(0, 0, width, height);
 
     if(!automatizar) {
         drawOne(lados);
