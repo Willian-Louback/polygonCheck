@@ -3,11 +3,6 @@ const dataChange = document.querySelector("#dataChange");
 const canvas = document.querySelector("#canvas");
 const ctx = canvas.getContext("2d");
 
-/*const windowWidth = window.innerWidth - 20;
-const windowHeight = window.innerHeight - 10;
-
-canvas.style.backgroundColor = "#FF0043";*/
-
 const height = canvas.clientHeight;
 const width = canvas.clientWidth;
 
@@ -16,183 +11,145 @@ canvas.height = height;
 
 const centerX = width / 2;
 const centerY = height / 2;
-let raio = 100;
-let lados = 100;
-let velocity = 2000;
-let verify = false;
+
 let stop = false;
-let viewAll = false;
+let angrA = [];
 const timeout = [];
 
-const drawCircle = (verify) => {
-    if(verify) {
+const drawCircle = (config) => {
+    if(config.verify) {
         ctx.beginPath();
-        ctx.arc(centerX, centerY, raio, 0, 2 * Math.PI);
+        ctx.arc(centerX, centerY, config.radius, 0, 2 * Math.PI);
         ctx.stroke();
     }
 }
 
-const drawSequence = () => {
-    let x = 0;
-    stop = false;
-    for(let i = 2; i <= lados; i++) {
-        timeout.push(setTimeout(() => {
-            if(!viewAll) {
-                ctx.clearRect(0, 0, width, height);
-            }
-            drawCircle(verify);
-
-            ctx.beginPath();
-            const grausRad = i % 2 === 0 ? -((180 * (i - 2)) / i / 2) * (Math.PI / 180) : ((180 * (i - 2)) / i / 2) * (Math.PI / 180);
-            let moveToX = centerX + raio * Math.cos(grausRad);
-            let moveToY = centerY + raio * Math.sin(grausRad);
-
-            let anguloAnterior = 0;
-
-            const angrA = [];
-
-            const tamanhoLado = (2 * raio * Math.sin(Math.PI/i));
-
-            for(let j = (i + 1); j != 1; j--) {
-                let angulo = i % 2 !== 0 ? -((180 * (i - 2)) / i) : ((180 * (i - 2)) / i);
-
-                if(j <= i){
-                    if(i % 2 === 0) {
-                        angulo = anguloAnterior + (360 / i);
-                    } else {
-                        angulo = anguloAnterior + (angulo * (i - 1));
-                    }
-
-                    if(angulo > 360) {
-                        angulo %= 360;
-                    }
-
-                    console.log(angulo, j)
-                } else {
-                    console.log(angulo, j)
-                }
-                anguloAnterior = angulo;
-
-                const anguloRad = angulo * (Math.PI / 180);
-                angrA.push(anguloRad);
-            }
-
-            let y = 0;
-
-            for(let j = (i + 1); j != 1; j--) {
-                if(j === i+1) {
-                    y = 1;
-                } else {
-                    y--;
-                    if(y < 0) {
-                        y = (i - 1);
-                    }
-                }
-
-                ctx.moveTo(moveToX, moveToY);
-                let endX = moveToX + parseFloat(tamanhoLado) * Math.cos(angrA[y]);
-                let endY = moveToY + parseFloat(tamanhoLado) * Math.sin(angrA[y]);
-
-                moveToX = endX;
-                moveToY = endY;
-
-                ctx.lineTo(endX, endY);
-                ctx.stroke();
-            }
-
-            dataChange.innerText =
-                `   Raio: ${raio}
-                    Lados: ${i}
-                    Tamanho do lado (i): ${tamanhoLado}
-                    Perímetro: ${tamanhoLado * i}
-                    Teste de Pi: ${(tamanhoLado * i) / raio / 2}
-                `;
-            x++;
-        }, (i - 2) * velocity));
-
-        if(stop === true) {
-            break;
-        }
-    }
+const draw = (moveToX, moveToY, endX, endY) => {
+    ctx.beginPath();
+    ctx.moveTo(moveToX, moveToY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
 }
 
-const drawOne = (i) => {
-    ctx.clearRect(0, 0, width, height);
-    drawCircle(verify);
+const init = (config, sequence) => {
+    stop = false;
 
-    ctx.beginPath();
-    const grausRad = i % 2 === 0 ? -((180 * (i - 2)) / i / 2) * (Math.PI / 180) : ((180 * (i - 2)) / i / 2) * (Math.PI / 180);
-    let moveToX = centerX + raio * Math.cos(grausRad);
-    let moveToY = centerY + raio * Math.sin(grausRad);
+    if(sequence === true) {
+        for(let i = 2; i <= config.sides; i++) {
+            timeout.push(setTimeout(() => {
+                angrA = [];
 
-    let anguloAnterior = 0;
+                if(!config.viewAll) {
+                    ctx.clearRect(0, 0, width, height);
+                }
 
-    const angrA = [];
+                drawCircle(config);
 
-    const tamanhoLado = (2 * raio * Math.sin(Math.PI/i));
+                const sideSize = calculate(config, i);
+
+                dataChange.innerText = `
+                        Raio: ${config.radius}
+                        Lados: ${i}
+                        Tamanho do lado (i): ${sideSize}
+                        Perímetro: ${sideSize * i}
+                        Teste de Pi: ${(sideSize * i) / config.radius / 2}
+                `;
+            }, (i - 2) * config.velocity));
+
+            if(stop === true) {
+                break;
+            }
+        }
+    } else {
+        angrA = [];
+
+        ctx.clearRect(0, 0, width, height);
+
+        drawCircle(config);
+
+        const sideSize = calculate(config, config.sides);
+
+        dataChange.innerText = `
+            Raio: ${config.radius}
+            Lados: ${config.sides}
+            Tamanho do lado (i): ${sideSize}
+            Perímetro: ${sideSize * config.sides}
+            Teste de Pi: ${(sideSize * config.sides) / config.radius / 2}
+        `;
+    }
+
+}
+
+const calculate = (config, i) => {
+    const grausRad = i % 2 === 0 ? - ((180 * (i - 2)) / i / 2) * (Math.PI / 180) : ((180 * (i - 2)) / i / 2) * (Math.PI / 180);
+
+    let moveToX = centerX + config.radius * Math.cos(grausRad);
+    let moveToY = centerY + config.radius * Math.sin(grausRad);
+
+    let anteriorAngle = 0;
+
+    const sideSize = (2 * config.radius * Math.sin(Math.PI/i));
 
     for(let j = (i + 1); j != 1; j--) {
-        let angulo = i % 2 !== 0 ? -((180 * (i - 2)) / i) : ((180 * (i - 2)) / i);
+        let angle = i % 2 !== 0 ? - ((180 * (i - 2)) / i) : ((180 * (i - 2)) / i);
 
         if(j <= i){
             if(i % 2 === 0) {
-                angulo = anguloAnterior + (360 / i);
+                angle = anteriorAngle + (360 / i);
             } else {
-                angulo = anguloAnterior + (angulo * (i - 1));
+                angle = anteriorAngle + (angle * (i - 1));
             }
 
-            if(angulo > 360) {
-                angulo %= 360;
+            if(angle > 360) {
+                angle %= 360;
             }
         }
 
-        anguloAnterior = angulo;
+        anteriorAngle = angle;
 
-        const anguloRad = angulo * (Math.PI / 180);
-        angrA.push(anguloRad);
+        const angleRad = angle * (Math.PI / 180);
+
+        angrA.push(angleRad);
     }
 
     let y = 0;
 
     for(let j = (i + 1); j != 1; j--) {
-        if(j === i+1) {
+        if(j === i + 1) {
             y = 1;
         } else {
             y--;
+
             if(y < 0) {
                 y = (i - 1);
             }
         }
 
-        ctx.moveTo(moveToX, moveToY);
-        let endX = moveToX + parseFloat(tamanhoLado) * Math.cos(angrA[y]);
-        let endY = moveToY + parseFloat(tamanhoLado) * Math.sin(angrA[y]);
+        let endX = moveToX + parseFloat(sideSize) * Math.cos(angrA[y]);
+        let endY = moveToY + parseFloat(sideSize) * Math.sin(angrA[y]);
+
+        draw(moveToX, moveToY, endX, endY)
 
         moveToX = endX;
         moveToY = endY;
-
-        ctx.lineTo(endX, endY);
-        ctx.stroke();
     }
 
-    dataChange.innerText =
-        `   Raio: ${raio}
-            Lados: ${i}
-            Tamanho do lado (i): ${tamanhoLado}
-            Perímetro: ${tamanhoLado * i}
-            Teste de Pi: ${(tamanhoLado * i) / raio / 2}
-        `;
+    return sideSize;
 }
 
 document.querySelector("#form").onsubmit = (event) => {
     event.preventDefault();
+
     const formData = new FormData(event.target);
-    const automatizar = formData.get("automatizar");
-    verify = formData.get("circleView");
-    lados = parseInt(formData.get("lados"));
-    velocity = formData.get("velocity");
-    raio = formData.get("raio");
-    viewAll = formData.get("viewAllDraw");
+    const automate = formData.get("automate");
+
+    const config = {
+        verify: formData.get("circleView"),
+        sides: parseInt(formData.get("sides")),
+        velocity: parseInt(formData.get("velocity")),
+        radius: parseInt(formData.get("radius")),
+        viewAll: formData.get("viewAllDraw")
+    }
 
     stop = true;
 
@@ -202,9 +159,9 @@ document.querySelector("#form").onsubmit = (event) => {
 
     ctx.clearRect(0, 0, width, height);
 
-    if(!automatizar) {
-        drawOne(lados);
+    if(!automate) {
+        init(config, false);
     } else {
-        drawSequence();
+        init(config, true);
     }
 }
